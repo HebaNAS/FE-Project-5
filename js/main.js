@@ -1,4 +1,5 @@
 var MapsApplication = function() {
+    'use strict';
     /* All Variables */
 
     // initialization function
@@ -26,16 +27,25 @@ var MapsApplication = function() {
         listItems = ko.observableArray(),
 
     // DOM elements
-        body = $("body")[0],
-        footer = $("footer")[0],
-        mapElement = $(".map-canvas"),
-        list = $(".list"),
+        windowWidth = ko.observable($(window).width()),
+        headerHeight = ko.observable($('nav').height()),
+        footerHeight = ko.observable($('footer').height()),
+        listWidth = ko.observable($('.list').width()),
+
+    // flag for menu
+        menuActive = ko.observable(false),
 
     // array to hold markers
         markers = ko.observableArray([]),
 
     // infowindow
         infowindow,
+
+    // flag for opened infowindow
+        infowindowOpen = ko.observable(false),
+
+    // infowindow content string
+        contentString,
 
     // map object
         map,
@@ -259,7 +269,7 @@ var MapsApplication = function() {
             icon: 'img/star-3.png'
         });
         markers.push(marker);
-        marker.addListener("click", toggleBounce);
+        marker.addListener('click', toggleBounce);
 
         // marker animation function
         function toggleBounce() {
@@ -323,7 +333,7 @@ var MapsApplication = function() {
         var updateLocationWithDetails = function(data) {
             var js = ko.toJS(data),
                 venue = js.response.venue;
-            
+
             if (venue.id == location.id) {
                 location.address = venue.location.formattedAddress;
                 location.category = venue.categories[0].name;
@@ -354,6 +364,7 @@ var MapsApplication = function() {
             } else {
                 location.price = undefined;
             }
+            detailedData(location);
             // add to locations array
             locations.push(location);
         });
@@ -388,7 +399,7 @@ var MapsApplication = function() {
         }
         if (location.price) {
             price = "<div>Prices: ";
-            for (var i = 0; i < location.price; i++) {
+            for (var i = 0, len = location.price; i < len; i++) {
                 price += '$';
             }
             price += "</div></div>";
@@ -396,41 +407,35 @@ var MapsApplication = function() {
             price = "";
         }
         if (location.description) {
-            description = "<div>" + location.description + "</div>";
+            description = "<div class='col-xs-12'>" + location.description + "</div>";
         } else if (location.bestTip) {
-            description = "<div>" + location.bestTip + "</div>";
+            description = "<div class='col-xs-12'>" + location.bestTip + "</div>";
         } else {
             description = "";
         }
         logo = "<div class='text-right'><img width='150px' src='https://ss0.4sqi.net/img/poweredByFoursquare/poweredby-one-color-cdf070cc7ae72b3f482cf2d075a74c8c.png'></div></div>";
-        var contentString = title + photo + category + price + address + rating + description + logo;
+        contentString = title + photo + category + price + address + rating + description + logo;
         return contentString;
-    };
-
-    /* Method to update location */
-    var updateLocations = function() {
-        locations().forEach(function(location) {
-            detailedData(location);
-        });
-        return locations();
     };
 
     /* Method to listen for clicks on marker or list item */
     var showInfoWindow = function(data) {
         // create content string
-        var contentString = createContentString(data);
+        contentString = createContentString(data);
 
         // show infowindow
         infowindow.setContent(contentString);
         infowindow.open(map, data.marker);
         map.setCenter(data.marker.getPosition());
 
-        if ($(window).width() < 767) {
-            if (body.className === 'menu-active') {
-                body.className = '';
-            }
+        infowindowOpen(true);
+
+        if (windowWidth() < 767 && menuActive() === true) {
+            menuActive(false);
         }
     };
+
+    /* Method to close side bar when info window opens on small screens to save space */
 
     /* Method to set the map on all markers in the array */
     function setMapOnAll(map, markers) {
@@ -445,39 +450,36 @@ var MapsApplication = function() {
     };
 
     /* Method to search and filter view list items according to user input */
-    var searchItems = function() {
-        // search and filter function
-        var filter = ko.computed(function() {
-            var loweredSearch = search().toLowerCase();
-            // if input is clean
-            if (!loweredSearch) {
-                // show all markers on the map and return all list items
-                setMapOnAll(map, markers());
-                listItems(locations());
-                return listItems();
-            } else {
-                var found = ko.observableArray();
-                var foundMarkers = ko.observableArray();
-                // loop through markers array
-                var filtered = ko.utils.arrayFilter(locations(), function(item) {
-                    // look for a match between entry and markers objects array
-                    var foundBool = item.name.toLowerCase().indexOf(loweredSearch) !== -1;
-                    // push matching results into an array
-                    if (foundBool === true) {
-                        found().push(item);
-                        foundMarkers().push(item.marker);
-                    }
-                    return foundBool;
-                });
-                // remove all markers from map
-                clearMarkers(markers());
-                // set markers for results found
-                setMapOnAll(map, foundMarkers());
-                listItems(found());
-                return listItems();
-            }
-        });
-    };
+    var searchItems = ko.computed(function() {
+        var loweredSearch = search().toLowerCase();
+        // if input is clean
+        if (!loweredSearch) {
+            // show all markers on the map and return all list items
+            setMapOnAll(map, markers());
+            listItems(locations());
+            return listItems();
+        } else {
+            var found = ko.observableArray();
+            var foundMarkers = ko.observableArray();
+            // loop through markers array
+            ko.utils.arrayFilter(locations(), function(item) {
+                // look for a match between entry and markers objects array
+                var foundBool = item.name.toLowerCase().indexOf(loweredSearch) !== -1;
+                // push matching results into an array
+                if (foundBool === true) {
+                    found().push(item);
+                    foundMarkers().push(item.marker);
+                }
+                return foundBool;
+            });
+            // remove all markers from map
+            clearMarkers(markers());
+            // set markers for results found
+            setMapOnAll(map, foundMarkers());
+            listItems(found());
+            return listItems();
+        }
+    });
 
     /* Method for displaying errors on the page */
     var displayErrors = function(errorMessage) {
@@ -491,88 +493,79 @@ var MapsApplication = function() {
 
     /* Method for sliding side menu */
     var toggleSideBar = function() {
-        var menuTrigger = $('.menu-trigger')[0];
-        if (typeof menuTrigger !== 'undefined') {
-            menuTrigger.addEventListener('click', function() {
-                body.className = (body.className === 'menu-active')? ' ' : 'menu-active';
-                // Adjust map width after opening the list side bar
-                if ($('body').hasClass('menu-active')) {
-                    $(window).resize(function() {
-                        if ($(window).width() < 767) {
-                            mapElement.css('width', $(window).width() - 100);
-                        } else {
-                            mapElement.css('width', $(window).width() - 200);
-                        }
-                    });
-                } else {
-                    $(window).resize(function() {
-                        mapElement.css('width', $(window).width());
-                    });
-                }
-            });
+        if (menuActive() === false) {
+            menuActive(true);
+        } else if (menuActive() === true) {
+            menuActive(false);
         }
     };
 
-    /* Method to set height of map and list divs according to window height */
-    var calculateWindowHeightWidth = function() {
-        if ($(window).width() < 767) {
-            mapElement.css('height', $(window).height() - 70);
-        } else {
-            mapElement.css('height', $(window).height() - 127);
-        }
-        mapElement.css('width', $(window).width());
-        mapElement.css('width', $(window).width());
-        if (list !== null) {
-            if ($(window).width() < 767) {
-                list.css('height', $(window).height() - 70);
-            } else {
-                list.css('height', $(window).height() - 127);
-            }
-        }
-    };
-
-    /* Method to listen for and resize map and list divs according to new window height */
-    var resizeMap = function() {
-        google.maps.event.addDomListener(window, "resize", function () {
-            body.css('height', window.innerHeight);
-            mapElement.css('height', window.innerHeight - 127);
-            mapElement.css('width', window.innerWidth);
-            footer.css('top', window.innerHeight - 48);
-            if (list !== null) {
-                list.css('height', window.innerHeight - 127);
-            }
+    /* Method to initialize map */
+    var initMap = function() {
+        // create map and add styling
+        var mapElement = document.getElementsByClassName('map-canvas')[0];
+        map = new google.maps.Map(mapElement, mapOptions);
+        map.setOptions({styles: mapStyles});
+        // initialize info window
+        infowindow = new google.maps.InfoWindow({
+            maxWidth: 450,
         });
     };
 
-    /* Custom binding handler for maps panel */
+    /* Method to load Google Maps API */
+    var loadAPI = function() {
+        var script  = document.createElement('script');
+        var lastScript = $('script')[2];
+        script.src  = 'https://maps.googleapis.com/maps/api/js?callback=MapsApplication.initMap';
+        script.setAttribute('async', '');
+        lastScript.parentNode.insertBefore(script, lastScript);
+    };
+
+    /* Method to check successful loading of google maps */
+    var mapReady = function() {
+        setTimeout(function() {
+            try {
+                google.maps.event.addListenerOnce(map, 'idle', function(){
+                    // fetch markers and data
+                    fetchData(constructNewLocation);
+                });
+            } catch(error) {
+                // Display as an error on the page
+                displayErrors("<span>Error Loading Google Maps API</span>. <br>Please make sure you're connected" +
+                 " to the internet and refresh to try again.");
+                console.log(error);
+            }
+        }, 1000);
+    };
+
+    /* Custom bindings */
     configureBindingHandlers = function() {
-        ko.bindingHandlers.mapCanvas = {
+        // Binding handler to resize map and list to fit the screen and not overflow
+        ko.bindingHandlers.resize = {
             init: function(element, valueAccessor) {
-                // check if google api has loaded
-                setTimeout(function() {
-                    if (typeof google === 'object') {
-                        // create map and add styling
-                        map = new google.maps.Map(element, mapOptions);
-                        map.setOptions({styles: mapStyles});
-                        // initialize info window
-                        infowindow = new google.maps.InfoWindow({
-                            maxWidth: 450,
-                        });
+                $(element).css('height', $(window).height() - (headerHeight() + footerHeight()));
+            },
+            update: function(element, valueAccessor) {
+                $(window).resize(function() {
+                    $(element).css('height', $(window).height() - (headerHeight() + footerHeight()));
+                });
+                // resize map when side bar opens
+                if (element.className === 'map-canvas') {
+                    if (menuActive() === true) {
+                        $(element).css('width', $(window).width() - $('.list').width());
+                        google.maps.event.trigger(map, 'resize');
                     } else {
-                        // Display as an error on the page
-                        displayErrors("<span>Error Loading Google Maps API</span>. <br>Please make sure you're connected" +
-                         " to the internet and refresh to try again.");
+                        $(element).css('width', $(window).width());
                     }
-                }, 500);
+                }
             }
         };
     };
 
     init = function () {
-        // adjust map and side bar size
-        calculateWindowHeightWidth();
-        $(window).resize(calculateWindowHeightWidth);
-        toggleSideBar();
+        // load map and markers
+        loadAPI();
+        mapReady();
 
         // start search box functionality
         searchItems();
@@ -580,9 +573,6 @@ var MapsApplication = function() {
         // add custom bindings
         configureBindingHandlers();
 
-        // make asynchronous calls
-        fetchData(constructNewLocation);
-        
         //apply the bindings
         ko.applyBindings(MapsApplication);
     };
@@ -594,9 +584,11 @@ var MapsApplication = function() {
         /* add members that will be exposed publicly */
         errorsFound: errorsFound,
         displayErrors: displayErrors,
+        menuActive: menuActive,
         search: search,
         listItems: listItems,
         showInfoWindow: showInfoWindow,
-        updateLocations: updateLocations
+        initMap: initMap,
+        toggleSideBar: toggleSideBar
     };
 }();

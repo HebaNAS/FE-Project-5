@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
-    
+
     <title>Neighborhood Map</title>
 
     <!-- Links to bootstrap library and local css styles-->
@@ -13,12 +13,12 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=PT+Serif+Caption|Podkova:700" rel="stylesheet" type="text/css">
 </head>
-<body data-bind="event: {mouseover: MapsApplication.updateLocations}">
+<body data-bind="css: {'menu-active': MapsApplication.menuActive() === true}">
     <nav class="navbar navbar-default container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header row">
             <div class="col-xs-1 menu-trigger">
-                <button type="button" class="btn navbar-btn" id="list-button">
+                <button type="button" class="btn navbar-btn" id="list-button" data-bind="click: MapsApplication.toggleSideBar">
                     <span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>
                 </button>
             </div>
@@ -28,28 +28,28 @@
             </div>
         </div>
     </nav>
-    
+
     <!-- Errors Div -->
     <div class="errors text-center" data-bind="visible: MapsApplication.errorsFound, text: MapsApplication.displayErrors"></div>
-        
-    <div class="list">
+
+    <div class="list" data-bind="resize">
         <!-- Side bar items -->
         <div class="form-group">
             <input type="search" data-bind="value: MapsApplication.search, valueUpdate: 'afterkeydown'"
             autocomplete="off" class="form-control" placeholder="Search For a Location">
         </div>
         <ul data-bind="foreach: MapsApplication.listItems">
-            <li> 
+            <li>
                 <!-- Dynamically create list items with favorite places using knockout -->
                 <a href data-bind="text: name, click: MapsApplication.showInfoWindow"></a>
             </li>
-        </ul>       
+        </ul>
     </div>
 
-    <div class="map-canvas" data-bind="mapCanvas">
-        <!-- Draw map element from js -->    
+    <div class="map-canvas" data-bind="resize">
+        <!-- Draw map element from js -->
     </div>
-          
+
     <footer>
         <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">Neighborhood Map</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Heba El-Shimy</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
     </footer>
@@ -57,10 +57,9 @@
     <!-- Load jquery, knockoutJS, googlemaps API, bootstrap and local javascripts-->
     <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.3.0.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js" async defer></script>
+    <!--<script src="https://maps.googleapis.com/maps/api/js&callback=initMap" async></script>-->
     <script src="secrets.json"></script>
     <script src="js/main.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    
+
 </body>
 </html>

@@ -87,14 +87,14 @@ a, a:hover, a:active, a:visited {
 */
 .list {
     position: fixed;
-    top: 79px;
+    top: 71px;
     left: -100px;
     display: block;
     visibility: hidden;
     float: left;
     width: 100%;
     height: 100%;
-    max-width: 200px;    
+    max-width: 200px;
     background: rgba(66, 63, 67, 1);
     overflow: scroll;
     font-size: 1.4em;
@@ -137,13 +137,13 @@ a, a:hover, a:active, a:visited {
 .map-canvas {
     position: absolute;
     width: 100%;
-    top: 79px;
+    top: 71px;
     left: 0;
     overflow: hidden;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
-  
+
     -moz-transition: all 500ms ease;
     -webkit-transition: all 500ms ease;
     transition: all 500ms ease;
@@ -155,6 +155,9 @@ a, a:hover, a:active, a:visited {
 }
 .menu-active .map-canvas { left: 200px; box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.75); }
 .menu-active .map-canvas .menu-trigger { left: 210px; }
+.infowindow {
+    overflow: hidden;
+}
 /*
   Footer
 */
@@ -198,14 +201,14 @@ footer a:hover {
         margin: 13px 0 0 0;
     }
     .errors {
-        top: 45px;
+        top: 47px;
     }
     .list {
-        top: 45px;
-        max-width: 100px; 
+        top: 47px;
+        max-width: 100px;
     }
     .map-canvas {
-        top: 45px;
+        top: 47px;
     }
     .menu-active .map-canvas { left: 100px; box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.75); }
     .menu-active .map-canvas .menu-trigger { left: 110px; }
