@@ -8,9 +8,7 @@ This is a website that uses an api to search for popular places in a given locat
 
 #### How to open this website
 
-- Make sure you are connected to the internet.
-- Clone the repo to your local drive.
-- Find the `index.html` file and open it in any browser.
+Go to https://github.com/HebaNAS/FE-Project-5.git
 
 
 #### Resources:
