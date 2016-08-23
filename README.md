@@ -8,7 +8,7 @@ This is a website that uses an api to search for popular places in a given locat
 
 #### How to open this website
 
-Go to https://github.com/HebaNAS/FE-Project-5.git
+Go to http://hebanas.github.io/FE-Project-5/
 
 
 #### Resources:
